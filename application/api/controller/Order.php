@@ -46,6 +46,9 @@ class Order extends Api
         foreach($result['goods_category'] as $key => &$value){
             $value['second_cate'] = DB::name('goodscategory')->field("id as scate_id,category_name")->where(['pid'=>$value['cate_id'],'status'=>"1"])->select();
         }
+
+        $result['cate_name'] = DB::name('order')->where(['status'=>"0"])->column('cate_name');
+        $result['cate_name'] = array_values(array_unique($result['cate_name']));
         $this->success('', $result);
     }
 
@@ -65,10 +68,10 @@ class Order extends Api
         isset($params['send_time']) ? $where['sendtime'] = ['between',[strtotime($params['send_time']),strtotime($params['send_time'])+60*60*24-1]]:$where['sendtime'] = ['between',[$start_time, $end_time]];
         isset($params['department_id']) ? $where['department_id'] = $params['department_id'] : NULL;
         isset($params['supplier_id']) ? $where['supplier_id'] = $params['supplier_id'] : NULL;
-
+        isset($params['cate_name']) ? $where['cate_name'] = $params['cate_name'] : NULL;
         //部门,供应商,送货时间(date),订单金额,商品总数,收货进度10/20
         $result = DB::name('order')
-            ->field('id as order_id,department_id,supplier_id,sendtime,order_amount')
+            ->field('id as order_id,department_id,supplier_id,sendtime,order_amount,cate_name')
             ->where(['status'=>"0"])
             ->where($where)
             ->select();

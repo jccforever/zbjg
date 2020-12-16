@@ -1,4 +1,4 @@
-<?php if (!defined('THINK_PATH')) exit(); /*a:4:{s:70:"/www/wwwroot/zbjg/public/../application/admin/view/auth/admin/add.html";i:1607410757;s:60:"/www/wwwroot/zbjg/application/admin/view/layout/default.html";i:1606813927;s:57:"/www/wwwroot/zbjg/application/admin/view/common/meta.html";i:1606813927;s:59:"/www/wwwroot/zbjg/application/admin/view/common/script.html";i:1606813927;}*/ ?>
+<?php if (!defined('THINK_PATH')) exit(); /*a:4:{s:70:"/www/wwwroot/zbjg/public/../application/admin/view/auth/admin/add.html";i:1606962741;s:60:"/www/wwwroot/zbjg/application/admin/view/layout/default.html";i:1606813927;s:57:"/www/wwwroot/zbjg/application/admin/view/common/meta.html";i:1606813927;s:59:"/www/wwwroot/zbjg/application/admin/view/common/script.html";i:1606813927;}*/ ?>
 <!DOCTYPE html>
 <html lang="<?php echo $config['language']; ?>">
     <head>
@@ -81,12 +81,6 @@
         <label for="nickname" class="control-label col-xs-12 col-sm-2">真实姓名:</label>
         <div class="col-xs-12 col-sm-8">
             <input type="text" class="form-control" id="nickname" name="row[nickname]" autocomplete="off" value="" data-rule="required" />
-        </div>
-    </div>
-    <div class="form-group">
-        <label for="nickname" class="control-label col-xs-12 col-sm-2">密码:</label>
-        <div class="col-xs-12 col-sm-8">
-            <input type="text" class="form-control" id="password" name="row[password]" autocomplete="off" value="" data-rule="required" />
         </div>
     </div>
     <!--<div class="form-group">-->

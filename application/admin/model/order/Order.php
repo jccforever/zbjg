@@ -95,15 +95,15 @@ class Order extends Model
                 $result[$key][$k]['spec'] = $goods['spec'];
                 $result[$key][$k]['unit'] = $goods['unit'];
                 $result[$key][$k]['order_count'] = $v['needqty'];
-                if($value['status']=="1"){
-                    $result[$key][$k]['send_count']=$v['needqty'];
+                if($v['status']=="1"){
+                    $result[$key][$k]['send_count']=$v['sendqty'];
                 }else{
                     $result[$key][$k]['send_count']="'" . "0";
                 }
                 $result[$key][$k]['price'] = $v['price'];
                 $result[$key][$k]['order_price'] = $v['order_price'];
-                if($value['status']=="1"){
-                    $result[$key][$k]['send_price']=$v['order_price'];
+                if($v['status']=="1"){
+                    $result[$key][$k]['send_price']=$v['send_price'];
                 }else{
                     $result[$key][$k]['send_price']="'" . "0";
                 }

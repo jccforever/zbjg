@@ -32,7 +32,9 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form','bootstrap-datetimepic
                         {field: 'order_sn', title: __('Order_sn'),operate:false},
                         {field: 'department.id', title: __('Department.name'),searchList: $.getJSON("order/order/department_list")},
                         {field: 'supplier.supplier_name', title: __('Supplier.supplier_name'),operate:false},
+                        {field: 'cate_name', title: __('类别'),operate:false},
                         {field: 'supplier.linkman', title: __('Supplier.linkman'),operate:false},
+                       
                         {field: 'supplier.mobile', title: __('Supplier.mobile'),operate:false},
                         {field: 'order_amount', title: __('Order_amount'), operate:'BETWEEN'},
                         {field: 'createtime', title: __('Createtime'), operate:'RANGE', addclass:'datetimerange', formatter: Table.api.formatter.datetime},
@@ -153,6 +155,16 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form','bootstrap-datetimepic
         daoru: function () {
 
             Controller.api.bindevent();
+            Form.api.bindevent($("#add-form"), function(data, ret){//绑定时间
+                //给表单绑定新的回调函数 接收 控制器 success(msg,url,data)或者error(msg,url,data)
+                
+                Fast.api.close(data);//在这里关闭当前弹窗
+                parent.location.reload();//这里刷新父页面，可以换其他代码
+                // parent.$("#table").bootstrapTable('refresh',{});
+                alert(ret.msg);
+            }, function(data, ret){
+               console.error("错误");
+            });
 
         },
         edit: function () {
@@ -256,7 +268,8 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form','bootstrap-datetimepic
                                                         send_time:locatinObj.send_time,
                                                         department_id:locatinObj.department_id,
                                                         goods_id:goods_id,
-                                                        order_id:order_id
+                                                        order_id:order_id,
+                                                        cate_id:locatinObj.cate_id
                                                     }
                                                 }, function(data, ret){
                                                     //成功的回调
@@ -678,16 +691,16 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form','bootstrap-datetimepic
                     // console.log(obj.send_time);//json name
                     Backend.api.addtabs(url,"新增订单","fa fa-circle-o fa-fw");//新建选项卡
                 });
-                Form.api.bindevent($("#add-form"), function(data, ret){//绑定时间
-                    //给表单绑定新的回调函数 接收 控制器 success(msg,url,data)或者error(msg,url,data)
+                // Form.api.bindevent($("#add-form"), function(data, ret){//绑定时间
+                //     //给表单绑定新的回调函数 接收 控制器 success(msg,url,data)或者error(msg,url,data)
                     
-                    Fast.api.close(data);//在这里关闭当前弹窗
-                    parent.location.reload();//这里刷新父页面，可以换其他代码
-                    // parent.$("#table").bootstrapTable('refresh',{});
-                    alert(ret.msg);
-                }, function(data, ret){
-                   console.error("错误");
-                });
+                //     Fast.api.close(data);//在这里关闭当前弹窗
+                //     parent.location.reload();//这里刷新父页面，可以换其他代码
+                //     // parent.$("#table").bootstrapTable('refresh',{});
+                //     alert(ret.msg);
+                // }, function(data, ret){
+                //    console.error("错误");
+                // });
             }   
         },
          today:function(AddDayCount){
@@ -717,7 +730,7 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form','bootstrap-datetimepic
     var day1 = new Date();
     day1.setTime(day1.getTime());
     var s1 = day1.getFullYear()+"-" + (day1.getMonth()+1) + "-" + day1.getDate()+" 00:00";
-    $("#c-sendtime").attr("data-date-min-date",s1);
+    $("#c-sendtime").attr("data-date-min-date",'2010-01-01');
     $("#c-sendtime").attr("data-date-default-date",day);
     $("#c-sendtime").datetimepicker({
         format: 'YYYY-MM-DD'
@@ -760,13 +773,13 @@ $("#table").on("blur",".change-input",function(e){
     const ordercountVal = parents.find("td.order_count input").val()||parents.find("td.order_count").text();
     switch (type){
         case 'order_count':
-            parents.find("td.order_amount").text((Number(value)*priceVal));
+            parents.find("td.order_amount").text(Number(Number(value)*priceVal).toFixed(2));
             break;
         case 'price':
-            parents.find("td.order_amount").text((Number(value)*ordercountVal));
+            parents.find("td.order_amount").text(Number(Number(value)*ordercountVal).toFixed(2));
             break;
         case 'takeorder_count':
-            parents.find("td.takeorder_amount").text((Number(value)*priceVal));
+            parents.find("td.takeorder_amount").text(Number(Number(value)*priceVal).toFixed(2));
             break;
 
     }
@@ -801,52 +814,136 @@ $("#table").on("click",".btn-addprint",function(e){
 function printTable(data){
 
     const list= data.info;
-    $("#printView tbody,.top-list-item>span").empty();
-    $(".top-list-item [data-type='部门']").text(data.department_name||"");
-    $(".top-list-item [data-type='下单时间']").text(data.createtime||"");
-    // $(".top-list-item [data-type='送货时间']").text(renderDate(data.sendtime)||"");
-    $(".top-list-item [data-type='供应商']").text(data.supplier_name||"");
-    // $(".top-list-item [data-type='联系人']").text(data.linkman||"");
-    // $(".top-list-item [data-type='联系电话']").text(data.mobile||"");
-    $(".top-list-item [data-type='类别']").text(data.cate_name||"");
+
     $("[data-type='order_sn']").text(data.order_sn||"");
-    // let total = 0;
-    if(list.length>0){
-        list.map((item,index)=>{
-           $("#printView tbody").append(`<tr>
-            <td>${index+1}</td>
-            <td>${item.goods_name}</td>
-            <td>${item.unit}</td>
-            <td>${item.needqty}</td>
-            <td>${item.sendqty}</td>
-            <td colspan="2">${item.price}</td>
-            <td>${item.send_price}</td>
-            </tr>`);
-            // total += Number(item.send_price);
+
+    if(list.length>length){
+        let startindex = 0;
+        let listarr = [];
+        let html = '';
+        const length = 13;
+        const method = () => {
+          return new Promise((res, ret) => {
+            list.map((item, index) => {
+              if (index % length === 0 && index !== 0) {
+                listarr.push(list.slice(startindex, index));
+                startindex = index;
+              };
+              if ((index + 1) === list.length) {
+                let lastlist = list.slice(startindex, (index + 1));
+                if((index - startindex) < (length - 1)){
+                    for(let i=(index - startindex);i<(length - 1);i++){
+                        lastlist.push({});   
+                    }
+                }
+                listarr.push(lastlist);
+                res(listarr);
+              }
+            });
+          });
+        }
+        method().then(res => {
+          res.map((v,index) => {
+            let tbody = ``;
+            let money = 0;
+            v.map((v1,key) => {
+              tbody += `<tr>
+                      <td>${v1.goods_name ? ((index*15+(key+1)>9)?index*15+(key+1):index*15+(key+1)):""}</td>
+                      <td>${v1.goods_name||""}</td>
+                      <td>${v1.unit||""}</td>
+                      <td>${v1.needqty||""}</td>
+                      <td>${v1.sendqty||""}</td>
+                      <td colspan="2">${v1.price||""}</td>
+                      <td>${v1.send_price||""}</td>
+                      </tr>`;
+              money+=Number(v1.send_price?v1.send_price:0);
+              if(key===v.length-1){
+                money = money.toFixed(2);
+                tbody +=`<tr>
+                  <td>小计大写</td>
+                   <td colspan="4" style="text-align: left;">${changeNumMoneyToChinese(money)}</td>
+                  <td>小计:</td>
+                  <td colspan="3">${money}</td>
+                 </tr>`
+              }
+            });
+            let page = `<div class="endbox"><div class="top-title">服务保障中心生活保障站直拨验收单</div>
+                    <div style="text-align: right;"><span data-type="order_sn">${data.order_sn||""}</span></div>
+                    <div class="top-list">
+                    <div class="top-list-item"><label>部门：</label><span data-type="部门">${data.department_name||""}</span></div>
+                    <div class="top-list-item"><span data-type="下单时间">${data.createtime||""}</span></div>
+                    <div class="top-list-item"><label>供应商：</label><span data-type="供应商">${data.supplier_name||""}</span></div>
+                    <div class="top-list-item"><label>类别：</label><span data-type="类别">${data.cate_name||""}</span></div>
+                    </div>
+                  <table class="layui-table">
+                      <colgroup>
+                      <col width="80">
+                      <col width="160">
+                      <col width="60">
+                      <col width="100">
+                      <col width="100">
+                      <col width="50">
+                      <col width="50">
+                      <col width="100">
+                      <col>
+                      </colgroup>
+                    <thead>
+                     <tr>
+                        <th>序号</th>
+                        <th>商品名称</th>
+                        <th>单位</th>
+                        <th>申购数量</th>
+                        <th>实收数量</th>
+                        <th colspan="2">单价</th>
+                        <th>金额</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                     ${tbody}
+                    </tbody>
+                  </table>
+                  <div class="top-list">
+                      <div class="bottom-list-item">中心领导：</div>
+                      <div class="bottom-list-item">站领导：</div>
+                      <div class="bottom-list-item">分管助理：</div>
+                      <div class="bottom-list-item">验收员：</div>
+                      <div class="bottom-list-item">审核员：</div>
+                  </div>
+                  </div>`;
+            html += page;
+      
+          });
+          document.getElementById("viewss").innerHTML = html;
+          var newStr = document.getElementById("printView").innerHTML;//获取打印部分
+          var win = window.open("","新建打印窗口","height=500,width=700,top=100");//新建窗口
+          win.document.body.innerHTML = newStr;//打印内容写到新建窗口中
+          win.print();//执行打印
+          win.close();
         });
     }else{
-        $("#printView tbody").append(`<tr>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td colspan="2"></td>
-        <td></td>
-        </tr>`);
+        alert("无数据");
+        // $("#printView tbody").append(`<tr>
+        // <td></td>
+        // <td></td>
+        // <td></td>
+        // <td></td>
+        // <td></td>
+        // <td colspan="2"></td>
+        // <td></td>
+        // </tr>`);
 
     }
-    $("#printView tbody").append(`<tr>
-        <td>小计大写</td>
-        <td colspan="4" style="text-align: left;">${data.cn_amount}</td>
-        <td>小计:</td>
-        <td colspan="3">${data.amount}</td>
-        </tr>`);
-    var newStr = $("#printView").html();//获取打印部分
-    var win = window.open("","新建打印窗口","height=500,width=700,top=100");//新建窗口
-    win.document.body.innerHTML = newStr;//打印内容写到新建窗口中
-    win.print();//执行打印
-    win.close();
+    // $("#printView tbody").append(`<tr>
+    //     <td>小计大写</td>
+    //     <td colspan="4" style="text-align: left;">${data.cn_amount}</td>
+    //     <td>小计:</td>
+    //     <td colspan="3">${data.amount}</td>
+    //     </tr>`);
+    // var newStr = $("#printView").html();//获取打印部分
+    // var win = window.open("","新建打印窗口","height=500,width=700,top=100");//新建窗口
+    // win.document.body.innerHTML = newStr;//打印内容写到新建窗口中
+    // win.print();//执行打印
+    // win.close();
 }
 
 function loadLoaction(local){
@@ -866,4 +963,85 @@ function renderDate(datetime){
     }
     var day = new Date(datetime*1000);
     return day.getFullYear()+"-" + (day.getMonth()<10?"0"+day.getMonth():day.getMonth()) + "-" + (day.getDate()<10?"0"+day.getDate():day.getDate());
+}
+
+function changeNumMoneyToChinese(money) {
+    var cnNums = new Array("零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖"); //汉字的数字
+    var cnIntRadice = new Array("", "拾", "佰", "仟"); //基本单位
+    var cnIntUnits = new Array("", "万", "亿", "兆"); //对应整数部分扩展单位
+    var cnDecUnits = new Array("角", "分", "毫", "厘"); //对应小数部分单位
+    var cnInteger = "整"; //整数金额时后面跟的字符
+    var cnIntLast = "元"; //整型完以后的单位
+    var maxNum = 999999999999999.9999; //最大处理的数字
+    var IntegerNum; //金额整数部分
+    var DecimalNum; //金额小数部分
+    var ChineseStr = ""; //输出的中文金额字符串
+    var parts; //分离金额后用的数组，预定义    
+    var Symbol = ""; //正负值标记
+    if (money == "") {
+        return "";
+    }
+    money = parseFloat(money);
+    if (money >= maxNum) {
+        alert('超出最大处理数字');
+        return "";
+    }
+    if (money == 0) {
+        ChineseStr = cnNums[0] + cnIntLast + cnInteger;
+        return ChineseStr;
+    }
+    if (money < 0) {
+        money = -money;
+        Symbol = "负 ";
+    }
+    money = money.toString(); //转换为字符串
+    if (money.indexOf(".") == -1) {
+        IntegerNum = money;
+        DecimalNum = '';
+    } else {
+        parts = money.split(".");
+        IntegerNum = parts[0];
+        DecimalNum = parts[1].substr(0, 4);
+    }
+    if (parseInt(IntegerNum, 10) > 0) { //获取整型部分转换
+        var zeroCount = 0;
+        var IntLen = IntegerNum.length;
+        for (var i = 0; i < IntLen; i++) {
+            var n = IntegerNum.substr(i, 1);
+            var p = IntLen - i - 1;
+            var q = p / 4;
+            var m = p % 4;
+            if (n == "0") {
+                zeroCount++;
+            } else {
+                if (zeroCount > 0) {
+                    ChineseStr += cnNums[0];
+                }
+                zeroCount = 0; //归零
+                ChineseStr += cnNums[parseInt(n)] + cnIntRadice[m];
+            }
+            if (m == 0 && zeroCount < 4) {
+                ChineseStr += cnIntUnits[q];
+            }
+        }
+        ChineseStr += cnIntLast;
+        //整型部分处理完毕
+    }
+    if (DecimalNum != '') { //小数部分
+        var decLen = DecimalNum.length;
+        for (var i = 0; i < decLen; i++) {
+            var n = DecimalNum.substr(i, 1);
+            if (n != '0') {
+                ChineseStr += cnNums[Number(n)] + cnDecUnits[i];
+            }
+        }
+    }
+    if (ChineseStr == '') {
+        ChineseStr += cnNums[0] + cnIntLast + cnInteger;
+    } else if (DecimalNum == '') {
+        ChineseStr += cnInteger;
+    }
+    ChineseStr = Symbol + ChineseStr;
+
+    return ChineseStr;
 }

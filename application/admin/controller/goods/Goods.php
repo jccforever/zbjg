@@ -15,7 +15,7 @@ use think\Db;
  */
 class Goods extends Backend
 {
-    
+    protected $noNeedRight = ['daoru','importExecl'];
     /**
      * Goods模型对象
      * @var \app\admin\model\goods\Goods
@@ -239,6 +239,9 @@ class Goods extends Backend
                 }
                 if(!$is_scate){
                     $this->error("二级分类" . $v["F"] . "不存在");
+                }
+                if($is_scate['pid'] != $is_cate['id']){
+                    $this->error("二级分类" . $v["F"] . "对应一级分类" . $v['E'] ."错误");
                 }
 
                 if(trim($v["H"]) != "非标品" && trim($v["H"]) != "标品"){

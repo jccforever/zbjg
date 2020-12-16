@@ -1,4 +1,4 @@
-<?php if (!defined('THINK_PATH')) exit(); /*a:4:{s:79:"/www/wwwroot/zbjg/public/../application/admin/view/supplier/supplier/index.html";i:1607405603;s:60:"/www/wwwroot/zbjg/application/admin/view/layout/default.html";i:1606813927;s:57:"/www/wwwroot/zbjg/application/admin/view/common/meta.html";i:1606813927;s:59:"/www/wwwroot/zbjg/application/admin/view/common/script.html";i:1606813927;}*/ ?>
+<?php if (!defined('THINK_PATH')) exit(); /*a:4:{s:79:"/www/wwwroot/zbjg/public/../application/admin/view/supplier/supplier/index.html";i:1606813927;s:60:"/www/wwwroot/zbjg/application/admin/view/layout/default.html";i:1606813927;s:57:"/www/wwwroot/zbjg/application/admin/view/common/meta.html";i:1606813927;s:59:"/www/wwwroot/zbjg/application/admin/view/common/script.html";i:1606813927;}*/ ?>
 <!DOCTYPE html>
 <html lang="<?php echo $config['language']; ?>">
     <head>
@@ -70,7 +70,7 @@
                     <div id="toolbar" class="toolbar">
                         <a href="javascript:;" class="btn btn-primary btn-refresh" title="<?php echo __('Refresh'); ?>" ><i class="fa fa-refresh"></i> </a>
                         <a href="javascript:;" class="btn btn-success btn-add <?php echo $auth->check('supplier/supplier/add')?'':'hide'; ?>" title="<?php echo __('Add'); ?>" ><i class="fa fa-plus"></i> 新增供应商</a>
-                        <a href="supplier/supplier/daoru" class="btn btn-success btn-dialog  <?php echo $auth->check('supplier/supplier/add')?'':'hide'; ?>" title="导入价格"><i class="fa fa-user-plus"></i> 导入价格</a>
+
 
                         
                     </div>

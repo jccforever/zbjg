@@ -1,4 +1,4 @@
-<?php if (!defined('THINK_PATH')) exit(); /*a:4:{s:73:"/www/wwwroot/zbjg/public/../application/admin/view/goods/goods/index.html";i:1607399383;s:60:"/www/wwwroot/zbjg/application/admin/view/layout/default.html";i:1606813927;s:57:"/www/wwwroot/zbjg/application/admin/view/common/meta.html";i:1606813927;s:59:"/www/wwwroot/zbjg/application/admin/view/common/script.html";i:1606813927;}*/ ?>
+<?php if (!defined('THINK_PATH')) exit(); /*a:4:{s:73:"/www/wwwroot/zbjg/public/../application/admin/view/goods/goods/index.html";i:1606813927;s:60:"/www/wwwroot/zbjg/application/admin/view/layout/default.html";i:1606813927;s:57:"/www/wwwroot/zbjg/application/admin/view/common/meta.html";i:1606813927;s:59:"/www/wwwroot/zbjg/application/admin/view/common/script.html";i:1606813927;}*/ ?>
 <!DOCTYPE html>
 <html lang="<?php echo $config['language']; ?>">
     <head>
@@ -70,7 +70,6 @@
                     <div id="toolbar" class="toolbar">
                         <a href="javascript:;" class="btn btn-primary btn-refresh" title="<?php echo __('Refresh'); ?>" ><i class="fa fa-refresh"></i> </a>
                         <a href="javascript:;" class="btn btn-success btn-add <?php echo $auth->check('goods/goods/add')?'':'hide'; ?>" title="新增商品" ><i class="fa fa-plus"></i> 新增商品</a>
-                        <a href="goods/goods/daoru" class="btn btn-success btn-dialog  <?php echo $auth->check('goods/goods/add')?'':'hide'; ?>" title="导入商品"><i class="fa fa-user-plus"></i> 导入商品</a>
                         <!--<a href="javascript:;" class="btn btn-success btn-edit btn-disabled disabled <?php echo $auth->check('goods/goods/edit')?'':'hide'; ?>" title="<?php echo __('Edit'); ?>" ><i class="fa fa-pencil"></i> <?php echo __('Edit'); ?></a>-->
                         <!--<a href="javascript:;" class="btn btn-danger btn-del btn-disabled disabled <?php echo $auth->check('goods/goods/del')?'':'hide'; ?>" title="<?php echo __('Delete'); ?>" ><i class="fa fa-trash"></i> <?php echo __('Delete'); ?></a>-->
                         <!--<a href="javascript:;" class="btn btn-danger btn-import <?php echo $auth->check('goods/goods/import')?'':'hide'; ?>" title="<?php echo __('Import'); ?>" id="btn-import-file" data-url="ajax/upload" data-mimetype="csv,xls,xlsx" data-multiple="false"><i class="fa fa-upload"></i> <?php echo __('Import'); ?></a>-->

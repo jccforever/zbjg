@@ -56,7 +56,7 @@ class Category extends Backend
                 ->limit($offset, $limit)
                 ->select();
             foreach($list as $key => &$value){
-                $value['pid'] = DB::name('goodscategory')->find($value['pid'])['category_name'];
+                @$value['pid'] = DB::name('goodscategory')->find($value['pid'])['category_name'];
                 $value['update_admin'] = DB::name('admin')->where(['id'=>$value['update_admin']])->value('nickname');
                 $value['create_admin'] = DB::name('admin')->find($value['create_admin'])['nickname'];
             }
@@ -124,7 +124,7 @@ class Category extends Backend
     public function edit($ids = null)
     {
         $row = $this->model->get($ids);
-        $row['first_cate'] = DB::name('goodscategory')->find($row['pid'])['category_name'];
+        @$row['first_cate'] = DB::name('goodscategory')->find($row['pid'])['category_name'];
         if (!$row) {
             $this->error(__('No Results were found'));
         }
@@ -180,13 +180,13 @@ class Category extends Backend
      * */
     public function first_cate()
     {
-
         if($this->request->request("keyValue") === "0"){
             return json(['total'=>1, 'list'=>[
                 ['id'=>0, 'category_name'=>""]
             ]
             ]);
         }
+//        halt($this->request->request());
         if($this->request->request("keyValue")){
 
 
@@ -197,8 +197,8 @@ class Category extends Backend
             ]
             ]);
         }
-
-        $list = DB::name('goodscategory')->where(['pid'=>0])->select();
+        $where['id'] = ['neq',$this->request->request('id')];
+        $list = DB::name('goodscategory')->where(['pid'=>0])->where(['status'=>"1"])->select();
 
         return json(['list'=>$list,'total'=>count($list)]);
     }
@@ -235,7 +235,7 @@ class Category extends Backend
         if($json===false){
             $list = DB::name('goodscategory')->field('id,category_name as name')->where("pid > 0")->select();
             $json = json($list);
-            cache('first_cate');
+
         }
         return $json;
     }

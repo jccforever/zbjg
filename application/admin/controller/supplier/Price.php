@@ -11,7 +11,7 @@ use think\Db;
  */
 class Price extends Backend
 {
-    
+    protected $noNeedRight = ['update_price'];
     /**
      * Price模型对象
      * @var \app\admin\model\supplier\Price

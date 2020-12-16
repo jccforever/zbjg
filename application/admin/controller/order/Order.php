@@ -17,7 +17,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
  */
 class Order extends Backend
 {
-    protected $noNeedRight = ['ajax_edit','ajax_add','ajax_del','next','next2','next3','next_add','ajax_time','department_list','pr_order','cate_list'];
+    protected $noNeedRight = ['ajax_edit','ajax_add','ajax_del','next','next2','next3','next_add','ajax_time','department_list','pr_order','cate_list','exportOrderExcel','importExecl','daoru'];
     /**
      * Order模型对象
      * @var \app\admin\model\order\Order
@@ -62,16 +62,19 @@ class Order extends Backend
                 return $this->selectpage();
             }
             list($where, $sort, $order, $offset, $limit) = $this->buildparams();
+            $where2['fa_order.status'] = ['neq',"2"];
             $order = "asc";
             $total = $this->model
                 ->with(['department', 'supplier'])
                 ->where($where)
                 ->order($sort, $order)
+                ->where($where2)
                 ->count();
 
             $list = $this->model
                 ->with(['department', 'supplier'])
                 ->where($where)
+                ->where($where2)
                 ->order($sort, $order)
                 ->limit($offset, $limit)
                 ->select();
@@ -322,8 +325,12 @@ class Order extends Backend
                 ->limit($offset, $limit)
                 ->select();
 
+            $count = DB::name('order_goods')
+                ->field('id,goods_sn,goods_name,spec,unit,price,needqty as order_count,order_price as order_amount,sendqty as takeorder_count,send_price as takeorder_amount,remark,status')
+                ->where(['order_id'=>$order_id])
+                ->count();
             $list = collection($list)->toArray();
-            $result = array("total" => count($list), "rows" => $list);
+            $result = array("total" => $count, "rows" => $list);
             return json($result);
         }
         //需要ajax返回回来的参数
@@ -513,6 +520,12 @@ class Order extends Backend
         if($order_id == 0){
             $order_amount = $price * $params['order_count'];
             //新建订单
+            $count = DB::name('order')->where(['sendtime'=>$params['send_time']])->count();
+            if($count+1<10){
+                $count = "0" . ($count+1);
+            }else{
+                $count = $count + 1;
+            }
             $insert = [
                 'order_sn' => date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT),
                 'department_id' => $params['department_id'],
@@ -520,7 +533,9 @@ class Order extends Backend
                 'order_amount' => $order_amount,
                 'createtime' => time(),
                 'sendtime' => $params['send_time'],
-                'status' => "0"
+                'status' => "0",
+                'cate_name' => DB::name('goodscategory')->where(['id'=>$params['cate_id']])->value('category_name'),
+                'count_sn' => 'WJ-' . date('Y-m-d',$params['send_time']) . "-" . $count
             ];
             $order_id = DB::name('order')->insertGetId($insert);
             $supplier_goods = [
@@ -606,12 +621,13 @@ class Order extends Backend
     public function ajax_edit()
     {
         $params = $this->request->param();
+      
         $order_goods = DB::name('order_goods')->where(['id'=>$params['id']])->find();
         $order_id = $order_goods['order_id'];
 //        if($order_goods['status'] != 0){
 //            $this->error('此条详情不能修改');
 //        }
-        if(!is_numeric($params['order_count'])||!is_numeric($params['price'])||!is_numeric($params['sendqty'])){
+        if(!is_numeric($params['order_count'])||!is_numeric($params['price'])||(!is_numeric($params['sendqty'])&&$params['sendqty'] != '')){
             $this->error('非法字符');
         }
         if($params['sendqty'] > 0){
@@ -828,6 +844,12 @@ class Order extends Backend
                 $next = 6+$top_margin+1+1+2;//11 +2是为了美观  与逻辑无关
                 $sheet->fromArray(['合计:'],null,'J'.(7+$top_margin));
                 $sheet->fromArray([$data[$a-1]['order_amount']],"0",'K'.(7+$top_margin));
+                $sum = 0;
+                foreach($info[$a-1] as $item){
+                    $sum += (float) $item['send_price'];
+                }
+
+                $sheet->fromArray([$sum],"0",'L'.(7+$top_margin));
             }else{
                 $sheet->fromArray(['收货部门:'.$data[$a-1]['department']['name']],null,'A'.($next+1));
                 $sheet->fromArray(['下单时间:'.date('Y-m-d H:i:s',$data[$a-1]['createtime'])],null,'F'.($next+1));
@@ -839,6 +861,11 @@ class Order extends Backend
                 $sheet->fromArray($info[$a-1], "0", 'A'.($next+5));
                 $sheet->fromArray(['合计:'],null,'J'.($next+4+$top_margin+1));
                 $sheet->fromArray([$data[$a-1]['order_amount']],"0",'K'.($next+4+$top_margin+1));
+                $sum = 0;
+                foreach($info[$a-1] as $item){
+                    $sum += (int) $item['send_price'];
+                }
+                $sheet->fromArray([$sum],"0",'L'.($next+4+$top_margin+1));
 
                 $next += 4+$top_margin+1+1+2;
             }
@@ -860,16 +887,20 @@ class Order extends Backend
         $end_time = $order['createtime'];
         $where['createtime'] =  ['between time', [$start_time, $end_time]];
 
-        $count = DB::name('order')->where($where)->count();
-
+//        $count = DB::name('order')->where($where)->count();
+//        if($count<10){
+//            $count = "0" . $count;
+//        }
         $supplier = DB::name('supplier')->where(['id'=>$order['supplier_id']])->find();
         $data['department_name'] = DB::name('department')->where(['id'=>$order['department_id']])->value('name');
-        $data['createtime'] = date('Y-m-d',$order['createtime']);
+        $data['createtime'] = date('Y-m-d',$order['sendtime']);
+        $sendtime = date('Y-m-d',$order['createtime']+60*60*24);
         $data['supplier_name'] = $supplier['supplier_name'];
         $order_good = DB::name('order_goods')->where(['order_id'=>$order['id']])->find();
 //        $data['cate_name'] = $order_good['cate_name'];
         $data['cate_name'] = $order['cate_name'];
-        $data['order_sn'] = "WJ-" . $data['createtime'] . "-" . $count;
+        $data['order_sn'] = $order['count_sn'];
+//        $data['order_sn'] = "WJ-" . $sendtime . "-" . $count;
         $data['amount'] = DB::name('order_goods')->where(['order_id'=>$order['id']])->sum('send_price');
         $data['cn_amount'] = num_to_rmb( $data['amount']);
         $data['info'] = DB::name('order_goods')
@@ -893,10 +924,6 @@ class Order extends Backend
     public function daoru()
     {
         if ($this->request->isAjax()) {
-//            $params = $this->request->param();
-//            $send_time = strtotime($params['sendtime']);
-//
-//            $send_time = strtotime()
             $params = $this->request->param();
 //            halt($params);
             $arr['send_time'] = strtotime($params['row']['sendtime']);
@@ -905,7 +932,6 @@ class Order extends Backend
             $arr['supplier_id'] = $params['row']['supplier_id'];
             $arr['cate_id'] = $params['row']['cate_id'];
             $arr['excel_path'] = $_SERVER['DOCUMENT_ROOT'] . $params['row']['client_path'];
-            $data = json_encode($arr, JSON_UNESCAPED_UNICODE);
             $result = $this->importExecl($arr['excel_path']);
 //            halt($result);
             $goods_names = DB::name('supplier_goods')
@@ -923,7 +949,12 @@ class Order extends Backend
                     $this->error($value["B"]."-->尚未维护价格");
                 }
             }
-
+            $count = DB::name('order')->where(['sendtime'=>$arr['send_time']])->count();
+            if($count+1<10){
+                $count = "0" . ($count+1);
+            }else{
+                $count = $count + 1;
+            }
             //创建订单
             $order_insert = [
                 'order_sn' => date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT),
@@ -933,6 +964,7 @@ class Order extends Backend
                 'createtime' => time(),
                 'sendtime' => $arr['send_time'],
                 'status' => "0",
+                'count_sn' => 'WJ-' . date('Y-m-d',$arr['send_time']) . "-" . $count,
                 'cate_name' => DB::name('goodscategory')->where(['id'=>$arr['cate_id']])->value('category_name'),
             ];
             $order_id = DB::name('order')->insertGetId($order_insert);
@@ -1065,6 +1097,12 @@ class Order extends Backend
         } catch (\Exception $e) {
             throw $e;
         }
+    }
+
+
+    public function daoru2()
+    {
+
     }
 
 

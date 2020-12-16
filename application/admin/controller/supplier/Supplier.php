@@ -16,7 +16,7 @@ use think\Db;
  */
 class Supplier extends Backend
 {
-    protected $noNeedRight = ['select_list'];
+    protected $noNeedRight = ['select_list','importExecl','daoru'];
     /**
      * Supplier模型对象
      * @var \app\admin\model\supplier\Supplier
